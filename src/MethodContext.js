@@ -8,8 +8,24 @@ import { EventEmitter } from './EventEmitter';
  */
 export const obj = {
     count: 0,
-    subscribe() {},
-    unsubscribe() {},
+    _callback: null, // Сохраняем сюда обработчик, чтобы иметь к нему доступ в unsubscribe
+
+    subscribe() {
+        // Если обработчик еще не создан, создаем его (используем стрелочную функцию для сохранения this)
+        if (!this._callback) {
+            this._callback = () => {
+                this.count += 1;
+            };
+        }
+        EventEmitter.on('click', this._callback);
+    },
+
+    unsubscribe() {
+        // Отписываемся, передавая ту же самую функцию
+        if (this._callback) {
+            EventEmitter.off('click', this._callback);
+        }
+    },
 };
 
 /*
@@ -19,7 +35,12 @@ obj1.first(1, 2, 3);
 // Внутренний вызов должен быть равносилен obj1.second(3, 2, 1)
  */
 export const obj1 = {
-    first(...args) {},
+    first(...args) {
+        // args собирает все аргументы в массив.
+        // reverse() переворачивает массив.
+        // ... разворачивает его обратно в отдельные аргументы для метода second.
+        return this.second(...args.reverse());
+    },
     second() {
         // здесь ничего писать не нужно
     },
